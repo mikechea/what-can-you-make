@@ -15,6 +15,7 @@ module.exports = {
   output: {
     path: `${__dirname}/static`,
     filename: '[name].bundle.js',
+    publicPath: '/'
   },
   module: {
     rules: [
@@ -38,6 +39,7 @@ module.exports = {
         changeOrigin: true
       }
     },
+    historyApiFallback: true,
     watchOptions: {
       aggregateTimeout: 300,
       poll: 1000

@@ -11,7 +11,17 @@ import LinearProgress from '@material-ui/core/LinearProgress'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
+import Link from '@material-ui/core/Link';
 import * as actions from '../../actions'
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  useRouteMatch,
+  useParams
+} from "react-router-dom";
+
+import Recipe from '../Recipe'
 
 const ingredientList = [
   "flour", "sugar", "salt", "butter", "milk"
@@ -24,20 +34,29 @@ class Home extends Component {
     this.handleIngredient = this.handleIngredient.bind(this)
     this.fetchSearch = this.fetchSearch.bind(this)
     this.state = {
-      term: "",
-      ingredients: ["milk"]
+      term: localStorage.getItem('term') || "",
+      ingredients: localStorage.getItem('ingredients').split(',') || ["milk"],
     }
   }
+
   fetchSearch () {
-    // TODO: something is missing here for fetching
+    const { term, ingredients } = this.state
+    const { searchRecipes } = this.props
+
+    searchRecipes(term, ingredients)
+    localStorage.setItem('term', term);
+    localStorage.setItem('ingredients', ingredients);
   }
+
   handleSearch(event) {
     const term = event.target.value
     this.setState({term})
   }
+  
   handleIngredient(ingredient, event) {
     const {ingredients} = {...this.state}
     if (event.target.checked) {
+      debugger
       ingredients.push(ingredient)
     } else {
       const foundIngredient = ingredients.indexOf(ingredient)
@@ -48,55 +67,59 @@ class Home extends Component {
   render () {
     const {term, ingredients} = this.state
     const {recipes, isLoading} = this.props
+
     return (
-      <HomeWrapper>
-        <Input
-          autoFocus={true}
-          fullWidth={true}
-          onChange={this.handleSearch}
-          value={term}
-        />
-        <div>
-          <h3>Ingredients on hand</h3>
-          {ingredientList.map(
-            ingredient => (
-              <FormControlLabel
-                key={ingredient}
-                control={
-                  <Checkbox
-                    checked={ingredients.includes(ingredient)}
-                    onChange={this.handleIngredient.bind(this, ingredient)}
-                    value={ingredient}
-                  />
-                }
-                label={ingredient}
-              />
-            )
-          )}
-        </div>
-        <Button onClick={this.fetchSearch}>
-          search
-        </Button>
-        <Divider />
-        {
-          recipes && (
+        <HomeWrapper>
+          <Input
+            autoFocus={true}
+            fullWidth={true}
+            onChange={this.handleSearch}
+            value={term}
+          />
+          <div>
+            <h3>Ingredients on hand</h3>
+            {ingredientList.map(
+              ingredient => (
+                <FormControlLabel
+                  key={ingredient}
+                  control={
+                    <Checkbox
+                      checked={ingredients.includes(ingredient)}
+                      onChange={this.handleIngredient.bind(this, ingredient)}
+                      value={ingredient}
+                    />
+                  }
+                  label={ingredient}
+                />
+              )
+            )}
+          </div>
+          <Button onClick={this.fetchSearch}>
+            search
+          </Button>
+          <Divider />
+          {
             <List>
-              {recipes.map( recipe =>
-                <ListItem key={recipe.id}>
-                  <ListItemText primary={recipe.name} />
-                </ListItem>
+              {recipes?.map( (recipe) => {
+                return(
+                <Link id={recipe.id} href={`recipe/${recipe.id}`} key={recipe.name}>
+                  <ListItem key={recipe.id}>
+                    <ListItemText primary={recipe.name} />
+                  </ListItem>
+                </Link>
+                )
+              }
               )}
             </List>
-          )
-        }
-        {isLoading && <LinearProgress />}
-        <Divider />
-        {/*
-          TODO: Add a recipe component here.
-          I'm expecting you to have it return null or a component based on the redux state, not passing any props from here
-          I want to see how you wire up a component with connect and build actions.
-        */}
-      </HomeWrapper>
+          }
+          {isLoading && <LinearProgress />}
+          <Divider />
+          {/*
+            TODO: Add a recipe component here.
+            I'm expecting you to have it return null or a component based on the redux state, not passing any props from here
+            I want to see how you wire up a component with connect and build actions.
+          */}
+        </HomeWrapper>
     )
   }
 }
